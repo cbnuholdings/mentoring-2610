@@ -157,7 +157,7 @@ footer a{color:var(--muted)}
       <div class="grid" id="grid"></div>
       <div class="picked" id="picked"></div>
       <div class="field" style="margin-top:14px"><label for="memo">요청사항 (선택)</label><textarea id="memo" maxlength="300" placeholder="예) 21일은 오후 4시 이후만 가능합니다 / 마케팅 분야 멘토를 희망합니다"></textarea></div>
-      <div class="row" style="margin-top:12px"><button class="btn" id="submitBtn">제출하기</button><span class="sub" id="savedAt" style="margin:0"></span></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="submitBtn">제출하기</button><button class="btn ghost hide" id="withdrawBtn">제출 취소</button><span class="sub" id="savedAt" style="margin:0"></span></div>
       <div class="msg" id="submitMsg"></div>
     </div>
   </section>
@@ -178,6 +178,7 @@ footer a{color:var(--muted)}
     <div class="msg" id="admMsg"></div>
     <div id="admBoard" class="hide">
       <p class="sub" id="admStatus"></p>
+      <p class="sub" id="admLinks"></p>
       <b style="font-size:13px">멘토 이름 · 배정 현황 (1인 2팀)</b>
       <div class="loads" id="loads"></div>
       <div class="row" style="margin-bottom:10px">
@@ -345,6 +346,7 @@ function renderGrid(){
   $('picked').innerHTML = [0,1,2].map(function(i){
     return '<div><b>'+(i+1)+'지망'+(i===0?' (필수)':'')+'</b>'+(me.choices[i] ? esc(slotLabel(me.choices[i])) : '<span style="color:var(--muted)">—</span>')+'</div>'; }).join('');
   $('submitBtn').disabled = closed || !me.choices.length;
+  $('withdrawBtn').classList.toggle('hide', closed || !me.saved0);
   $('memo').disabled = closed;
   if (closed) msg('submitMsg', '1차 시간 선택이 마감되었습니다. 변경이 필요하면 운영사무국으로 연락해 주십시오.', 'warn');
 }
@@ -360,6 +362,16 @@ $('grid').addEventListener('click', function(e){
   clearMsg('submitMsg');
   renderGrid();
 });
+$('withdrawBtn').onclick = function(){
+  var btn = this; btn.disabled = true;
+  api({action:'withdraw', id:me.id, pin:me.pin}).then(function(r){
+    btn.disabled = false;
+    if (!r.ok) return msg('submitMsg', r.message, 'bad');
+    me.choices = []; me.saved0 = undefined; $('memo').value = ''; $('savedAt').textContent = '';
+    msg('submitMsg', '제출을 취소했습니다. 다시 고르시려면 시간을 눌러 제출해 주십시오.', 'ok');
+    return loadState();
+  }).catch(function(e){ btn.disabled = false; msg('submitMsg', '연결 오류: '+(e.message||e), 'bad'); });
+};
 $('submitBtn').onclick = function(){
   var btn = this; btn.disabled = true;
   api({action:'submit', id:me.id, pin:me.pin, choices:me.choices, memo:$('memo').value}).then(function(r){
@@ -379,6 +391,11 @@ $('admBtn').onclick = function(){
   api({action:'admin', user:adm.user, code:adm.code}).then(function(r){
     if (!r.ok) return msg('admMsg', r.message, 'bad');
     clearMsg('admMsg'); adm.st = r.state; adm.closed = r.closed;
+    var L = r.links || {};
+    $('admLinks').innerHTML = '저장 위치 · ' + (L.sheet ? '<a href="'+esc(L.sheet)+'" target="_blank" rel="noopener">구글 드라이브 시트</a>' : '시트 없음')
+      + ' · <a href="'+esc(L.notion)+'" target="_blank" rel="noopener">노션 DB</a>'
+      + (L.notionOn ? '' : ' <span class="warn">(노션 토큰 미설정 — 노션에는 아직 안 적힘)</span>')
+      + (L.notionErr ? ' <span class="warn" style="color:var(--bad)">노션 오류: '+esc(L.notionErr)+'</span>' : '');
     $('admLogin').classList.add('hide'); $('admBoard').classList.remove('hide');
     renderAdm();
   }).catch(function(e){ msg('admMsg', '연결 오류: '+(e.message||e), 'bad'); });
