@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>TeX-Corps 멘토링 일정 선택</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<!-- 원본 = index.src.html → build.py 가 index.html(배포용)·gas/index.html(웹앱용)을 만든다. 직접 고치지 말 것. -->
+<style>
+:root{
+  --wine:#A8134A; --wine-d:#7d0d36; --wine-2:#E7A3BD; --wine-3:#F6DDE7; --wine-bg:#FBF1F5;
+  --ink:#1f1d1e; --muted:#6c6668; --line:#E7E1E3; --bg:#F7F5F6; --card:#fff;
+  --ok:#1f7a4d; --ok-bg:#E7F4ED; --warn:#a45a00; --warn-bg:#FFF3E0; --bad:#b3261e; --bad-bg:#FDECEA;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+header{background:var(--wine);color:#fff;padding:28px 0 26px}
+header .eyebrow{font-size:12px;letter-spacing:.12em;opacity:.8;font-weight:500}
+header h1{margin:6px 0 10px;font-size:clamp(22px,4.6vw,30px);font-weight:900;line-height:1.3}
+header .meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;opacity:.95}
+header .meta b{font-weight:700}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+h2{font-size:18px;margin:0 0 4px;font-weight:900}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.step{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.step .n{display:inline-block;font-size:12px;font-weight:700;color:var(--wine);margin-bottom:2px}
+.step b{display:block;font-size:15px}
+.step span{font-size:13px;color:var(--muted)}
+.step.now{border-color:var(--wine);background:var(--wine-bg)}
+@media (max-width:640px){.steps{grid-template-columns:1fr}}
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.team{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:10px;padding:9px 10px 9px 12px;min-width:0}
+.team .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team .st{font-size:11.5px;color:var(--muted)}
+.team .st.done{color:var(--ok);font-weight:700}
+.info{flex:none;border:1px solid var(--wine-2);background:#fff;color:var(--wine);border-radius:999px;font-size:12px;font-weight:700;padding:3px 10px;cursor:pointer}
+.info:hover{background:var(--wine-bg)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:13px;font-weight:700}
+select,input[type=text],input[type=password],textarea{border:1px solid #cfc7ca;border-radius:9px;padding:9px 11px;background:#fff;min-height:42px}
+select:focus,input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--wine);outline-offset:1px}
+.btn{border:0;border-radius:9px;padding:10px 18px;font-weight:700;cursor:pointer;min-height:42px;background:var(--wine);color:#fff}
+.btn:hover{background:var(--wine-d)}
+.btn.ghost{background:#fff;color:var(--wine);border:1px solid var(--wine-2)}
+.btn.ghost:hover{background:var(--wine-bg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.msg{margin-top:10px;padding:10px 12px;border-radius:9px;font-size:14px;display:none}
+.msg.show{display:block}
+.msg.ok{background:var(--ok-bg);color:var(--ok)} .msg.bad{background:var(--bad-bg);color:var(--bad)} .msg.warn{background:var(--warn-bg);color:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);margin:12px 0 8px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.grid{display:grid;grid-template-columns:52px repeat(4,1fr);gap:6px}
+.grid .hd{font-size:13px;font-weight:700;text-align:center;padding:6px 2px;line-height:1.3}
+.grid .hd small{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+.grid .tm{font-size:12.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25}
+.cell{position:relative;border:1px solid var(--line);border-radius:10px;background:#fff;min-height:58px;padding:6px;cursor:pointer;text-align:left;display:flex;flex-direction:column;justify-content:space-between;transition:background .12s}
+.cell:hover{border-color:var(--wine-2)}
+.cell .cnt{font-size:11px;color:var(--muted)}
+.cell .rk{align-self:flex-start;font-size:12px;font-weight:900;border-radius:6px;padding:1px 7px}
+.cell.r1{background:var(--wine);border-color:var(--wine);color:#fff} .cell.r1 .cnt{color:#fbd9e6} .cell.r1 .rk{background:#fff;color:var(--wine)}
+.cell.r2{background:var(--wine-2);border-color:var(--wine-2)} .cell.r2 .rk{background:#fff;color:var(--wine-d)}
+.cell.r3{background:var(--wine-3);border-color:var(--wine-2)} .cell.r3 .rk{background:#fff;color:var(--wine-d)}
+.cell.full:not(.r1){background:repeating-linear-gradient(135deg,#fff,#fff 6px,#f4f0f2 6px,#f4f0f2 12px)}
+.cell[disabled]{cursor:default}
+.picked{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.picked div{border:1px dashed #cfc7ca;border-radius:9px;padding:8px 10px;font-size:13.5px;min-height:56px}
+.picked div b{display:block;font-size:12px;color:var(--wine)}
+@media (max-width:640px){.picked{grid-template-columns:1fr}}
+textarea{width:100%;min-height:64px;resize:vertical}
+.result{border:2px solid var(--wine);background:var(--wine-bg);border-radius:12px;padding:16px;margin-bottom:14px}
+.result .big{font-size:20px;font-weight:900;color:var(--wine-d)}
+.hide{display:none!important}
+.sch{display:grid;grid-template-columns:52px repeat(4,1fr);gap:6px}
+.sch .slot{border:1px solid var(--line);border-radius:10px;padding:6px;min-height:48px;font-size:12px;line-height:1.35}
+.sch .slot span{display:block;background:var(--wine-bg);border-radius:6px;padding:2px 6px;margin-bottom:3px}
+.sch .slot span b{color:var(--wine-d)}
+footer{color:var(--muted);font-size:12.5px;padding:8px 0 40px;line-height:1.7}
+footer a{color:var(--muted)}
+/* 모달 */
+.modal{position:fixed;inset:0;background:rgba(20,10,14,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal .box{background:#fff;border-radius:14px;max-width:620px;width:100%;max-height:86vh;overflow:auto;padding:22px}
+.modal h3{margin:0 0 2px;font-size:19px}
+.modal .tag{display:inline-block;font-size:12px;background:var(--wine-bg);color:var(--wine-d);border-radius:999px;padding:2px 9px;margin:2px 4px 0 0;font-weight:700}
+.modal dl{margin:14px 0 0}
+.modal dt{font-size:12.5px;font-weight:700;color:var(--wine);margin-top:12px}
+.modal dd{margin:2px 0 0;white-space:pre-wrap}
+.modal .x{float:right;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--muted)}
+/* 운영자 */
+.adm table{width:100%;border-collapse:collapse;font-size:13.5px}
+.adm th,.adm td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}
+.adm th{font-size:12px;color:var(--muted);font-weight:700}
+.adm select{min-height:36px;padding:5px 8px;max-width:190px}
+.adm td.bad select{border-color:var(--bad);background:var(--bad-bg)}
+.adm .warn{color:var(--warn);font-size:12px}
+.loads{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:10px 0 14px}
+.loads label{border:1px solid var(--line);border-radius:9px;padding:6px 8px;font-size:12px;color:var(--muted)}
+.loads input{width:100%;min-height:32px;padding:4px 7px;margin-top:2px}
+.loads .over{border-color:var(--bad);color:var(--bad)}
+.tablewrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">TeX-Corps 실험실창업탐색팀 · 충북대학교기술지주</div>
+    <h1>1:1 온라인 멘토링 일정 선택</h1>
+    <div class="meta">
+      <span><b>기간</b> 2026년 10월 20일(화) ~ 23일(금)</span>
+      <span><b>시간</b> 오후 14:00 ~ 19:00 · 1회 1시간</span>
+      <span><b>방식</b> 멘토 1명 : 1팀 온라인</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>진행 방법</h2>
+    <p class="sub">멘토 6명이 1인당 2팀씩, 12팀 모두 한 번씩 멘토링을 받습니다.</p>
+    <div class="steps">
+      <div class="step" id="st1"><span class="n">1차 · 팀</span><b>희망 시간 선택</b><span>1~3지망을 고릅니다. 마감 <em id="dl"></em></span></div>
+      <div class="step" id="st2"><span class="n">2차 · 운영사무국</span><b>멘토 매칭</b><span>고른 시간에 맞춰 멘토를 배정합니다.</span></div>
+      <div class="step" id="st3"><span class="n">확정</span><b>일정 공개</b><span>이 화면에서 확정 시간과 멘토를 확인합니다.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>참여팀 (12팀)</h2>
+    <p class="sub">팀명은 신청서 기준입니다. <b>아이템</b>을 누르면 신청서의 아이템 내용을 볼 수 있습니다.</p>
+    <div class="teams" id="teams"></div>
+  </section>
+
+  <section id="pick">
+    <h2>우리 팀 시간 고르기</h2>
+    <p class="sub">팀을 고르고 신청서에 적은 <b>대표자(EL) 휴대전화 뒤 4자리</b>로 확인합니다. 제출한 뒤에도 마감 전까지 바꿀 수 있습니다.</p>
+    <div class="row" id="loginRow">
+      <div class="field" style="flex:1 1 220px"><label for="teamSel">팀</label><select id="teamSel"><option value="">팀을 고르세요</option></select></div>
+      <div class="field" style="flex:0 1 150px"><label for="pin">휴대전화 뒤 4자리</label><input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000"></div>
+      <button class="btn" id="loginBtn">확인</button>
+    </div>
+    <div class="msg" id="loginMsg"></div>
+
+    <div id="board" class="hide">
+      <div class="result hide" id="myResult"></div>
+      <p style="margin:6px 0 0"><b id="whoami"></b> — 가능한 시간을 <b>순서대로</b> 누르세요. 처음 누른 칸이 1지망입니다. 다시 누르면 빠집니다.</p>
+      <div class="legend">
+        <span><i style="background:var(--wine)"></i>1지망</span>
+        <span><i style="background:var(--wine-2)"></i>2지망</span>
+        <span><i style="background:var(--wine-3);border:1px solid var(--wine-2)"></i>3지망</span>
+        <span><i style="background:repeating-linear-gradient(135deg,#fff,#fff 3px,#e9e3e6 3px,#e9e3e6 6px);border:1px solid var(--line)"></i>1지망 마감(2·3지망은 가능)</span>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="picked" id="picked"></div>
+      <div class="field" style="margin-top:14px"><label for="memo">요청사항 (선택)</label><textarea id="memo" maxlength="300" placeholder="예) 21일은 오후 4시 이후만 가능합니다 / 마케팅 분야 멘토를 희망합니다"></textarea></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="submitBtn">제출하기</button><span class="sub" id="savedAt" style="margin:0"></span></div>
+      <div class="msg" id="submitMsg"></div>
+    </div>
+  </section>
+
+  <section id="schedSec" class="hide">
+    <h2>확정 일정</h2>
+    <p class="sub">온라인 접속 링크는 팀별로 따로 안내합니다.</p>
+    <div class="sch" id="sched"></div>
+  </section>
+
+  <section id="admSec" class="adm hide">
+    <h2>운영자 · 2차 멘토 매칭</h2>
+    <div class="row" id="admLogin">
+      <div class="field"><label for="admUser">아이디</label><input id="admUser" type="text" autocomplete="off"></div>
+      <div class="field"><label for="admCode">접속코드</label><input id="admCode" type="password" autocomplete="off"></div>
+      <button class="btn" id="admBtn">열기</button>
+    </div>
+    <div class="msg" id="admMsg"></div>
+    <div id="admBoard" class="hide">
+      <p class="sub" id="admStatus"></p>
+      <b style="font-size:13px">멘토 이름 · 배정 현황 (1인 2팀)</b>
+      <div class="loads" id="loads"></div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn ghost" id="autoBtn">빈 칸 자동 제안</button>
+        <button class="btn ghost" id="lockBtn"></button>
+        <button class="btn ghost" id="pubBtn"></button>
+        <button class="btn" id="saveBtn">저장</button>
+      </div>
+      <div class="tablewrap"><table><thead><tr><th>팀</th><th>지망</th><th>요청</th><th>확정 시간</th><th>멘토</th></tr></thead><tbody id="admRows"></tbody></table></div>
+      <div class="msg" id="admSaveMsg"></div>
+      <h2 style="margin-top:18px;font-size:15px">시간표 미리보기</h2>
+      <div class="sch" id="admSched" style="margin-top:8px"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  문의 · 충북대학교기술지주 043-249-1472(1489) · cbnuholdings@cbnu.ac.kr<br>
+  <a href="#" id="admLink">운영자</a>
+</footer>
+
+<div class="modal hide" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="box"><button class="x" id="mClose" aria-label="닫기">×</button><div id="mBody"></div></div>
+</div>
+
+<script>
+var API = 'https://script.google.com/macros/s/AKfycbxU86KBU2E6PdSeFa0cXMcMgCWbmi7Kf5KWxpoRwBk91Oys1h48Oik4E_ribDsjKPo/exec';
+var TEAMS = [{"id": "ITC2026-055", "name": "팀 215 테크놀로지", "tentative": true, "창업아이템": "맞춤형 인솔", "창업분야": ["BT", "CT"], "기술핵심기관": "충북대학교 응용생산시스템연구실", "q_org": "충북대학교", "q_dept": "기계공학과", "q_lab": "응용생산시스템연구실", "아이템_목표고객": "발의 피로와 불편을 겪는 장시간 기립자, 임산부, 러너 등 맞춤형 인솔 수요자", "아이템_문제": "기성 인솔은 개인별 발 형상과 아치 특성을 충분히 반영하지 못해 착용감과 지지 성능에 한계가 있음", "아이템_핵심기술": "3D 발 형상 데이터 분석과 AI 기반 자동 인솔 설계 및 적층제조 기술", "아이템_제품서비스": "개인 맞춤형 3D 프린팅 인솔 및 자동 설계·제조 서비스", "아이템_대안대비가치": "수작업 의존도를 줄이고 개인별 발 형상을 정량적으로 반영하여 맞춤 설계의 일관성과 제작 효율을 향상"}, {"id": "ITC2026-056", "name": "테라코어", "tentative": false, "창업아이템": "점토광물 기반 이차전지 코팅 분리막 소재", "창업분야": ["ET"], "기술핵심기관": "", "q_org": "단국대학교", "q_dept": "수소에너지학과", "q_lab": "나노디지털트윈연구실", "아이템_목표고객": "리튬이온배터리 분리막 제조사 및 코팅 전문기업의 R&D·공정기술 담당자", "아이템_문제": "기존 분리막의 고온 열수축 및 전해액 젖음성 한계, 세라믹 코팅 소재의 원가·공급망 부담, 신규 소재 도입 시 공정 적합성 및 품질 재현성 검증 부담", "아이템_핵심기술": "Halloysite 및 Montmorillonite 기반 기능성 코팅 기술. 점토광물 조성, 슬러리 분산성, 코팅 두께 및 건조 조건을 최적화하여 열적 안정성, 젖음성 및 이온수송 특성 개선", "아이템_제품서비스": "미국산 점토광물 기반 리튬이온배터리 분리막 코팅 솔루션. Halloysite 단독 및 Halloysite–Montmorillonite 복합 코팅 슬러리와 평가용 분리막 샘플을 공급하는 B2B 소재 사업.", "아이템_대안대비가치": "기존 세라믹 코팅 대비 원가 절감과 공급 안정성 개선을 목표로 함. 열수축률 2% 이하, 접촉각 20° 이하, 이온저항 10% 이상 감소를 목표로 하며, 코팅 균일성과 생산 공정 적용성을 확보하고자 함."}, {"id": "ITC2026-057", "name": "팀에스지", "tentative": true, "창업아이템": "응축성 미세먼지 측정용 희석 챔버 시스템", "창업분야": ["ET"], "기술핵심기관": "충북대학교 대기오염공학연구실", "q_org": "충북대학교", "q_dept": "환경공학과", "q_lab": "대기오염공학연구실", "아이템_목표고객": "CPM 측정을 수행하는 환경측정업체", "아이템_문제": "기존 CPM 희석장비가 무겁고 부피가 커 운반/설치/해체 시 안전위험과 작업지연 발생", "아이템_핵심기술": "CFD 기반 체적화, 모듈형 챔버 설계", "아이템_제품서비스": "응축성 미세먼지(CPM) 측정용 경량 모듈형 희석/체류 시스템", "아이템_대안대비가치": "장비 운반/설치 안전성 향상, 작업시간 단축 및 기존 상용장비 대비 1/10 비용 절감"}, {"id": "ITC2026-058", "name": "비앤비", "tentative": false, "창업아이템": "기관지확장증 악화 정량 진단키트", "창업분야": ["BT"], "기술핵심기관": "충북대학교 의학과 생화학 연구실, 충북대학교병원 호흡기내과", "q_org": "충북대학교", "q_dept": "의학과", "q_lab": "스마트바이오마커 연구실", "아이템_목표고객": "기관지확장증 환자를 진료하는 호흡기내과(폐) 전문의 및 임상 검사실/간호 인력", "아이템_문제": "기관지확장증 급성 악화 여부를 판별할 객관적 수단이 없어 환자의 주관적 증상 보고에 의존하게 되고, 진단이 분절적·지연적으로 이루어져 적절한 치료 시점을 놓치는 손실이 발생함", "아이템_핵심기술": "객담 내 MPO(골수세포과산화효소) 정량분석 기반 현장진단(Point-of-Care) 분석 기술", "아이템_제품서비스": "객담 MPO 정량분석 진단키트 (현장형 POCT 진단 키트, 측정기기 별도)", "아이템_대안대비가치": "증상 문진 중심의 주관적 판단 대비, 객관적 바이오마커 수치로 악화 여부를 신속하게 정량 판별 (판정 소요시간 단축 및 진단 객관성 확보), 총 검사 시간 20분"}, {"id": "ITC2026-059", "name": "에프비", "tentative": true, "창업아이템": "인공지능 기반 실시간 바이오차 품질 분석 시스템", "창업분야": ["IT"], "기술핵심기관": "충북대학교 바이오시스템공학과 바이오시스템정보공학실험실", "q_org": "충북대학교", "q_dept": "바이오시스템공학과", "q_lab": "바이오시스템정보공학실험실", "아이템_목표고객": "수율 향상 및 비용 절감을 책임지는 바이오차 생산 기업의 공정 운영 팀장", "아이템_문제": "원료 함수율 편차와 기존 사후 수동측정의 한계로 인해 에너지 낭비 및 품질 문제가 발생", "아이템_핵심기술": "인공지능 기반 실시간 함수율 계측 및 제어 솔루션", "아이템_제품서비스": "기존 이송장치에 적용 가능한 레트로핏 형태의 계측 시스템 + 월 구독 소프트웨어", "아이템_대안대비가치": "검사시간 6~24시간 (정지되어있는 톤 단위 전체 샘플의 극소량 부분) -> 0.5초 이내(이송 중인 톤 단위 전체 샘플의 모든 부분)"}, {"id": "ITC2026-061", "name": "뉴로에이치", "tentative": false, "창업아이템": "다발성경화증 조기진단을 위한 바이오마커 발굴", "창업분야": ["BT"], "기술핵심기관": "충북대학교 약학대학 약학과 분자생물학실험실", "q_org": "충북대학교 약학대학", "q_dept": "약학과 신약개발기능전공", "q_lab": "분자생물학실험실", "아이템_목표고객": "다발성경화증 의심 환자를 진료하는 일반 신경과·신경안과 및 병원 검사", "아이템_문제": "초기 증상이 비특이적이고 확진에 MRI·뇌척수액 검사 등이 필요해, 의심 환자의 적절한 검사와 전문의 의뢰가 늦어질 수 있음", "아이템_핵심기술": "혈액 유래 후보 바이오마커를 다중 분석해 다발성경화증 관련 분자 신호를 평가하는 기술", "아이템_제품서비스": "병원·수탁검사기관용 혈액 기반 다발성경화증 의심 환자 분류 보조 검사", "아이템_대안대비가치": "의심 환자 분류와 전문의 의뢰 판단에 필요한 정보를 제공해 추가 검사 경로 결정을 지원함"}, {"id": "ITC2026-063", "name": "놉", "tentative": false, "창업아이템": "의료용 방사능 차폐 소재", "창업분야": ["NT"], "기술핵심기관": "", "q_org": "충북대학교", "q_dept": "기계공학과", "q_lab": "첨단가공생산연구실", "아이템_목표고객": "방사선을 사용하는 의료진", "아이템_문제": "무겁고 뻣뻣한 방사능 차폐복으로 인해 의료활동시 제약이 생김", "아이템_핵심기술": "전기방사 및 무전해 도금", "아이템_제품서비스": "방사늩 차폐 장갑, 앞치마등의 장비", "아이템_대안대비가치": "높은 유연성과 가벼운 무게"}, {"id": "ITC2026-064", "name": "IPMBL", "tentative": true, "창업아이템": "곤충병원성 곰팡이 기반 미생물 작물보호제", "창업분야": ["BT"], "기술핵심기관": "충북대학교 곤충병리 및 생명공학 실험실", "q_org": "충북대학교", "q_dept": "농생물학과 응용곤충학 전공", "q_lab": "곤충병리 및 생명공학 실험실", "아이템_목표고객": "중소규모 작물보호제(농약) 제조 회사", "아이템_문제": "신규 원제 탐색 및 개발 과정에서 겪는 어려움", "아이템_핵심기술": "실험실 특허의 곤충병원성 곰팡이 균주 자체와 균주의 생물학적 특성에 대한 연구 결과", "아이템_제품서비스": "친환경 작물보호제의 원제가 되는 곤충병원성 곰팡이 균주와 그에 대한 연구 결과", "아이템_대안대비가치": "원제 탐색 및 평가에 소요되는 기간 최대 1/2로 감소 가능"}, {"id": "ITC2026-065", "name": "IN2DEEP", "tentative": true, "창업아이템": "AI 통합 스마트 초음파 패치", "창업분야": ["BT"], "기술핵심기관": "선문대학교", "q_org": "선문대학교", "q_dept": "물리치료학과", "q_lab": "IN2DEEP", "아이템_목표고객": "부상 예방이 필요한 트레이너·스포츠 선수(1차), 근육을 관리하는 건강한 성인(2차), 근감소증 위험이 있는 노인(3차)", "아이템_문제": "근육의 질(지방침윤·섬유화)은 부상과 기능 저하보다 먼저 나빠지지만, DEXA·InBody는 병원에서 가끔 근육량만 재고 초음파는 전문가가 필요해, 일상에서 근육 상태를 확인할 방법이 없음", "아이템_핵심기술": "A-mode(연속 측정)와 B-mode(정밀 영상) 이중 모드 웨어러블 초음파, 그리고 근두께·에코강도·결 특징으로 근육 건강 점수를 산출하는 AI 알고리즘(특허 출원 중)", "아이템_제품서비스": "패치형 웨어러블 초음파 ‘Muscle Clock’ 디바이스(일시불) + AI 근육 분석 소프트웨어(월 구독)", "아이템_대안대비가치": "가격: 정밀 장비 1회 60만원 → 50만원 매일 평생사용가능 / 측정 장소: 병원 → 어디서나 / 측정자: 전문가 → 비전문가 / 측정 주기: 단발성 → 연속 모니터링 / 정확도: 임상용 B-mode 대비 근두께 오차 ±10% 이내(목표)"}, {"id": "ITC2026-066", "name": "세이프 도즈", "tentative": false, "창업아이템": "AI 활용 자세 측정 기반 마취 환자용 하악각 고정 의료기기", "창업분야": ["IT"], "기술핵심기관": "충북대학교 반도체공학과 / 정보통신공학부 강현수 교수 연구실", "q_org": "충북대학교", "q_dept": "정보통신공학부 / 컴퓨터비전·AI", "q_lab": "강현수 교수 연구실", "아이템_목표고객": "진정·수면마취 시술을 수행하는 병원·전문클리닉의 의료진 및 자세 관찰·영상 분석 기술을 도입하려는 의료기기 개발기업", "아이템_문제": "수동 턱 지지와 자세 관찰에 의료진의 반복 업무가 발생하고, 촬영 조건별 자세 정보와 기록을 일관된 방식으로 확인하기 어렵다. 초기에는 비임상 시연과 고객 인터뷰로 도입 조건을 검증한다.", "아이템_핵심기술": "외부 하악 지지기구와 교체형 패드 설계, 기존 얼굴 랜드마크 모델 기반 하악부 기준점·영상상 추정각도 분석, 흔들림 완화 및 인식 상태 표시", "아이템_제품서비스": "Safe Doze 하악 지지기구와 연계하는 PC·모바일 얼굴·하악부 분석 웹 시제품. 영상 입력·분석 표시·결과 저장·조회 및 서버 배포 기능을 개발한다.", "아이템_대안대비가치": "육안 관찰·단순 받침과 비교하여 기준점·추정각도·인식 상태·기록을 한 화면에서 확인한다. 분석 가능률, 처리시간, 반복 측정 편차 및 사용 단계 수를 비임상 시험으로 평가할 계획이며, 임상효과는 아직 확정하지 않는다."}, {"id": "ITC2026-067", "name": "바이오광패치연구실", "tentative": true, "창업아이템": "부착형 광패치", "창업분야": ["IT"], "기술핵심기관": "충북대 반도체공학부 바이오광패치연구실", "q_org": "충북대", "q_dept": "반도체공학부", "q_lab": "바이오광패치연구실", "아이템_목표고객": "탈모 고민을 가지고 있는 사람", "아이템_문제": "탈모 치료를 병원에 방문하지 않고 하고 싶은 사람", "아이템_핵심기술": "OLED 기반의 광치료", "아이템_제품서비스": "OLED 기반의 부착형 광패치", "아이템_대안대비가치": "기존 제품의 LED 점광원에서 OLED의 면광원으로 유연하고, 저발열"}, {"id": "ITC2026-068", "name": "켐펠 스마트파워", "tentative": true, "창업아이템": "5G 중계기용 지능형 고효율 정류기", "창업분야": ["ET"], "기술핵심기관": "한국기술교육대학교 전기공학과 KEMPEL 연구실", "q_org": "한국기술교육대학교", "q_dept": "전기공학과", "q_lab": "KEMPEL", "아이템_목표고객": "국내 5G 중계기용 전원장치 제조·납품기업 및 통신장비 OEM/ODM 업체", "아이템_문제": "기존 전원장치의 낮은 출력밀도와 발열·EMI 문제로 인한 소형화 한계 및 유지보수 비용 증가", "아이템_핵심기술": "3.3kW급 고효율 PFC·AC-DC 전력변환 회로 및 DSP 기반 통합제어·돌입전류 제한 기술", "아이템_제품서비스": "5G 중계기용 3.3kW급 고효율 전원모듈 공급 및 고객 맞춤형 설계·개발 서비스", "아이템_대안대비가치": "기존 700~1,700W급 대비 3,300W급 출력, 목표 효율 93%→96%, 역률 99% 및 1U급 소형화"}];
+var DAYS = [['1020','10/20','화'],['1021','10/21','수'],['1022','10/22','목'],['1023','10/23','금']];
+var HOURS = [14,15,16,17,18];
+var MENTOR_COUNT = 6, PER_MENTOR = 2;
+
+var pub = { firstCount:{}, submitted:[], firstCap:6, closed:false, published:false };
+var me = { id:'', pin:'', choices:[] };
+var adm = { code:'', st:null };
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function teamOf(id){ for (var i=0;i<TEAMS.length;i++) if (TEAMS[i].id===id) return TEAMS[i]; return null; }
+function slotLabel(s, short){
+  if (!s) return '';
+  var p = s.split('-'), h = +p[1], d = DAYS.filter(function(x){ return x[0]===p[0]; })[0];
+  return (d ? d[1]+'('+d[2]+')' : p[0]) + ' ' + h + ':00' + (short ? '' : '~' + (h+1) + ':00');
+}
+function msg(el, text, kind){ var m=$(el); m.className='msg show '+(kind||'ok'); m.textContent=text; }
+function clearMsg(el){ $(el).className='msg'; }
+
+function api(body){
+  if (window.google && google.script && google.script.run) {
+    return new Promise(function(res, rej){ google.script.run.withSuccessHandler(res).withFailureHandler(rej).api(body); });
+  }
+  return fetch(API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body) })
+    .then(function(r){ return r.json(); });
+}
+
+/* ── 참여팀 · 아이템 보기 ─────────────────────── */
+function renderTeams(){
+  $('teams').innerHTML = TEAMS.map(function(t){
+    var done = pub.submitted.indexOf(t.id) >= 0;
+    return '<div class="team"><div style="min-width:0"><div class="nm" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'
+      + '<div class="st'+(done?' done':'')+'">'+(done?'시간 선택 완료':'선택 전')+'</div></div>'
+      + '<button class="info" data-id="'+t.id+'" aria-label="'+esc(t.name)+' 아이템 보기">아이템</button></div>';
+  }).join('');
+  var sel = $('teamSel'), cur = sel.value;
+  sel.innerHTML = '<option value="">팀을 고르세요</option>' + TEAMS.map(function(t){
+    return '<option value="'+t.id+'">'+esc(t.name)+'</option>'; }).join('');
+  sel.value = cur;
+}
+function showItem(id){
+  var t = teamOf(id); if (!t) return;
+  var org = [t.q_org, t.q_dept, t.q_lab].filter(Boolean).join(' · ') || t['기술핵심기관'] || '';
+  var rows = [['소속', org], ['목표 고객', t['아이템_목표고객']], ['해결하려는 문제', t['아이템_문제']],
+              ['핵심 기술', t['아이템_핵심기술']], ['제품·서비스', t['아이템_제품서비스']], ['차별성', t['아이템_대안대비가치']]];
+  $('mBody').innerHTML = '<h3 id="mTitle">'+esc(t.name)+(t.tentative?' <small style="font-weight:500;color:var(--muted);font-size:13px">(가칭)</small>':'')+'</h3>'
+    + '<div style="font-weight:700;color:var(--wine-d);margin-top:4px">'+esc(t['창업아이템'])+'</div>'
+    + (t['창업분야']||[]).map(function(f){ return '<span class="tag">'+esc(f)+'</span>'; }).join('')
+    + '<dl>' + rows.filter(function(r){ return r[1]; }).map(function(r){ return '<dt>'+r[0]+'</dt><dd>'+esc(r[1])+'</dd>'; }).join('') + '</dl>'
+    + '<p class="sub" style="margin-top:14px">출처: 텍스코어 성장지원 신청서(창업접수시스템) 기재 내용</p>';
+  $('modal').classList.remove('hide'); $('mClose').focus();
+}
+document.addEventListener('click', function(e){
+  var b = e.target.closest && e.target.closest('.info'); if (b) showItem(b.getAttribute('data-id'));
+});
+$('mClose').onclick = function(){ $('modal').classList.add('hide'); };
+$('modal').onclick = function(e){ if (e.target === this) this.classList.add('hide'); };
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') $('modal').classList.add('hide'); });
+
+/* ── 공개 상태 ─────────────────────────────── */
+function loadState(){
+  return api({action:'state'}).then(function(r){
+    if (!r.ok) throw new Error(r.message);
+    pub = r;
+    var d = new Date(r.deadline);
+    $('dl').textContent = (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+') '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    $('st1').classList.toggle('now', !r.closed);
+    $('st2').classList.toggle('now', r.closed && !r.published);
+    $('st3').classList.toggle('now', !!r.published);
+    renderTeams();
+    if (r.published) { $('schedSec').classList.remove('hide'); renderSched($('sched'), r.schedule || []); }
+    if (me.id) renderGrid();
+  }).catch(function(e){ msg('loginMsg', '서버에 연결하지 못했습니다. 잠시 후 새로고침해 주십시오. ('+(e.message||e)+')', 'bad'); });
+}
+function renderSched(el, rows){
+  var by = {};
+  rows.forEach(function(r){ (by[r.slot] = by[r.slot] || []).push(r); });
+  var h = '<div></div>' + DAYS.map(function(d){ return '<div class="hd">'+d[1]+'<small>('+d[2]+')</small></div>'; }).join('');
+  HOURS.forEach(function(hr){
+    h += '<div class="tm">'+hr+':00<br>~'+(hr+1)+':00</div>';
+    DAYS.forEach(function(d){
+      var k = d[0]+'-'+hr;
+      h += '<div class="slot">' + (by[k]||[]).map(function(r){ var t = teamOf(r.id);
+        return '<span>'+esc(t ? t.name : r.id)+' · <b>'+esc(r.mentor)+'</b></span>'; }).join('') + '</div>';
+    });
+  });
+  el.innerHTML = h;
+}
+
+/* ── 팀 시간 선택 ─────────────────────────── */
+$('loginBtn').onclick = function(){
+  var id = $('teamSel').value, pin = $('pin').value.trim();
+  if (!id) return msg('loginMsg', '팀을 골라 주십시오.', 'warn');
+  if (!/^\d{4}$/.test(pin)) return msg('loginMsg', '휴대전화 뒤 4자리 숫자를 넣어 주십시오.', 'warn');
+  this.disabled = true;
+  var btn = this;
+  api({action:'login', id:id, pin:pin}).then(function(r){
+    btn.disabled = false;
+    if (!r.ok) return msg('loginMsg', r.message, 'bad');
+    clearMsg('loginMsg');
+    me = { id:id, pin:pin, choices:(r.mine.c||[]).slice(), saved0:(r.mine.c||[])[0] };
+    $('memo').value = r.mine.memo || '';
+    $('savedAt').textContent = r.mine.at ? '마지막 제출 ' + r.mine.at : '';
+    $('whoami').textContent = teamOf(id).name;
+    showMine(r.mine);
+    $('board').classList.remove('hide');
+    renderGrid();
+  }).catch(function(e){ btn.disabled = false; msg('loginMsg', '연결 오류: '+(e.message||e), 'bad'); });
+};
+$('pin').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('loginBtn').click(); });
+$('teamSel').onchange = function(){ $('board').classList.add('hide'); me = {id:'',pin:'',choices:[]}; };
+
+function showMine(m){
+  var box = $('myResult');
+  if (m.slot) {
+    box.innerHTML = '<div class="sub" style="margin:0">확정된 멘토링</div><div class="big">'+esc(slotLabel(m.slot))+'</div><div>담당 <b>'+esc(m.mentor)+'</b> · 온라인 접속 링크는 따로 안내합니다.</div>';
+    box.classList.remove('hide');
+  } else box.classList.add('hide');
+}
+// 1지망 상한 — 우리 팀이 이미 그 칸을 1지망으로 제출했다면 우리 몫은 빼고 센다.
+function fullFor(k){ return (pub.firstCount[k]||0) - (me.saved0===k ? 1 : 0) >= pub.firstCap; }
+function renderGrid(){
+  var closed = pub.closed;
+  var h = '<div></div>' + DAYS.map(function(d){ return '<div class="hd">'+d[1]+'<small>('+d[2]+')</small></div>'; }).join('');
+  HOURS.forEach(function(hr){
+    h += '<div class="tm">'+hr+':00<br>~'+(hr+1)+':00</div>';
+    DAYS.forEach(function(d){
+      var k = d[0]+'-'+hr, rank = me.choices.indexOf(k) + 1;
+      var full = fullFor(k);
+      h += '<button class="cell'+(rank?' r'+rank:'')+(full?' full':'')+'" data-k="'+k+'"'+(closed?' disabled':'')
+        + ' aria-label="'+slotLabel(k)+(rank?' '+rank+'지망':'')+'">'
+        + (rank ? '<span class="rk">'+rank+'지망</span>' : '<span></span>')
+        + '<span class="cnt">1지망 '+(pub.firstCount[k]||0)+'팀</span></button>';
+    });
+  });
+  $('grid').innerHTML = h;
+  $('picked').innerHTML = [0,1,2].map(function(i){
+    return '<div><b>'+(i+1)+'지망'+(i===0?' (필수)':'')+'</b>'+(me.choices[i] ? esc(slotLabel(me.choices[i])) : '<span style="color:var(--muted)">—</span>')+'</div>'; }).join('');
+  $('submitBtn').disabled = closed || !me.choices.length;
+  $('memo').disabled = closed;
+  if (closed) msg('submitMsg', '1차 시간 선택이 마감되었습니다. 변경이 필요하면 운영사무국으로 연락해 주십시오.', 'warn');
+}
+$('grid').addEventListener('click', function(e){
+  var c = e.target.closest('.cell'); if (!c || c.disabled) return;
+  var k = c.getAttribute('data-k'), i = me.choices.indexOf(k);
+  if (i >= 0) me.choices.splice(i, 1);
+  else if (me.choices.length >= 3) return msg('submitMsg', '3지망까지 고를 수 있습니다. 바꾸려면 고른 칸을 먼저 눌러 빼 주십시오.', 'warn');
+  else {
+    if (fullFor(k) && me.choices.length === 0) return msg('submitMsg', '그 시간은 1지망이 가득 찼습니다. 다른 시간을 1지망으로 골라 주십시오.', 'warn');
+    me.choices.push(k);
+  }
+  clearMsg('submitMsg');
+  renderGrid();
+});
+$('submitBtn').onclick = function(){
+  var btn = this; btn.disabled = true;
+  api({action:'submit', id:me.id, pin:me.pin, choices:me.choices, memo:$('memo').value}).then(function(r){
+    if (!r.ok) { btn.disabled = false; return msg('submitMsg', r.message, 'bad'); }
+    me.choices = r.mine.c.slice();
+    me.saved0 = me.choices[0];
+    $('savedAt').textContent = '마지막 제출 ' + r.mine.at;
+    msg('submitMsg', '제출되었습니다. ' + r.mine.c.map(function(s,i){ return (i+1)+'지망 '+slotLabel(s); }).join(' / '), 'ok');
+    return loadState();
+  }).catch(function(e){ btn.disabled = false; msg('submitMsg', '연결 오류: '+(e.message||e), 'bad'); });
+};
+
+/* ── 운영자 ───────────────────────────────── */
+$('admLink').onclick = function(e){ e.preventDefault(); $('admSec').classList.toggle('hide'); $('admCode').focus(); };
+$('admBtn').onclick = function(){
+  adm.code = $('admCode').value; adm.user = $('admUser').value.trim();
+  api({action:'admin', user:adm.user, code:adm.code}).then(function(r){
+    if (!r.ok) return msg('admMsg', r.message, 'bad');
+    clearMsg('admMsg'); adm.st = r.state; adm.closed = r.closed;
+    $('admLogin').classList.add('hide'); $('admBoard').classList.remove('hide');
+    renderAdm();
+  }).catch(function(e){ msg('admMsg', '연결 오류: '+(e.message||e), 'bad'); });
+};
+function slotOptions(t, cur){
+  var c = t.c || [], o = '<option value="">미정</option>';
+  c.forEach(function(s, i){ o += '<option value="'+s+'"'+(s===cur?' selected':'')+'>'+(i+1)+'지망 · '+slotLabel(s, true)+'</option>'; });
+  o += '<optgroup label="그 밖의 시간">';
+  DAYS.forEach(function(d){ HOURS.forEach(function(h){ var k = d[0]+'-'+h;
+    if (c.indexOf(k) < 0) o += '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+slotLabel(k, true)+'</option>'; }); });
+  return o + '</optgroup>';
+}
+function admConflicts(){
+  var st = adm.st, per = {}, at = {}, bad = {};
+  Object.keys(st.teams).forEach(function(id){ var t = st.teams[id]; if (!t.mentor) return;
+    (per[t.mentor] = per[t.mentor] || []).push(id);
+    if (t.slot) { var k = t.mentor+'@'+t.slot; (at[k] = at[k] || []).push(id); } });
+  Object.keys(at).forEach(function(k){ if (at[k].length > 1) at[k].forEach(function(id){ bad[id] = '같은 멘토가 같은 시간에 겹칩니다'; }); });
+  Object.keys(per).forEach(function(m){ if (per[m].length > PER_MENTOR) per[m].forEach(function(id){ bad[id] = bad[id] || '멘토 배정 2팀 초과'; }); });
+  return { per:per, bad:bad };
+}
+function renderAdm(){
+  var st = adm.st, cf = admConflicts();
+  var nSub = TEAMS.filter(function(t){ return (st.teams[t.id]||{}).c && st.teams[t.id].c.length; }).length;
+  var nAsg = TEAMS.filter(function(t){ var x = st.teams[t.id]||{}; return x.slot && x.mentor; }).length;
+  $('admStatus').textContent = '1차 제출 ' + nSub + '/12팀 · 배정 완료 ' + nAsg + '/12팀 · ' + (adm.closed ? '1차 마감됨' : '1차 접수 중') + ' · ' + (st.published ? '팀 화면에 공개 중' : '비공개');
+  $('lockBtn').textContent = st.locked ? '1차 다시 열기' : '1차 지금 마감';
+  $('pubBtn').textContent = st.published ? '공개 내리기' : '확정 일정 공개';
+  $('loads').innerHTML = st.mentors.map(function(m, i){
+    var n = (cf.per[i+1]||[]).length;
+    return '<label class="'+(n>PER_MENTOR?'over':'')+'">'+(i+1)+'번 · '+n+'/'+PER_MENTOR+'팀<input data-m="'+i+'" value="'+esc(m)+'"></label>'; }).join('');
+  $('admRows').innerHTML = TEAMS.map(function(t){
+    var x = st.teams[t.id] || {}, c = x.c || [];
+    var off = x.slot && c.length && c.indexOf(x.slot) < 0;
+    var mo = '<option value="0">미정</option>' + st.mentors.map(function(m, i){ return '<option value="'+(i+1)+'"'+(x.mentor===i+1?' selected':'')+'>'+esc(m)+'</option>'; }).join('');
+    return '<tr><td><b>'+esc(t.name)+'</b><br><span class="sub">'+t.id+'</span></td>'
+      + '<td>'+(c.length ? c.map(function(s,i){ return (i+1)+'. '+slotLabel(s, true); }).join('<br>') : '<span class="warn">미제출</span>')+'</td>'
+      + '<td style="max-width:180px">'+esc(x.memo||'')+'</td>'
+      + '<td><select data-t="'+t.id+'" data-f="slot">'+slotOptions(x, x.slot)+'</select>'+(off?'<div class="warn">지망 밖 시간</div>':'')+'</td>'
+      + '<td class="'+(cf.bad[t.id]?'bad':'')+'"><select data-t="'+t.id+'" data-f="mentor">'+mo+'</select>'+(cf.bad[t.id]?'<div class="warn" style="color:var(--bad)">'+cf.bad[t.id]+'</div>':'')+'</td></tr>';
+  }).join('');
+  var rows = [];
+  Object.keys(st.teams).forEach(function(id){ var x = st.teams[id]; if (x.slot) rows.push({id:id, slot:x.slot, mentor: x.mentor ? st.mentors[x.mentor-1] : '멘토 미정'}); });
+  renderSched($('admSched'), rows);
+}
+$('admRows').addEventListener('change', function(e){
+  var s = e.target, id = s.getAttribute('data-t'); if (!id) return;
+  var x = adm.st.teams[id] = adm.st.teams[id] || {};
+  if (s.getAttribute('data-f') === 'slot') x.slot = s.value; else x.mentor = +s.value;
+  renderAdm();
+});
+$('loads').addEventListener('change', function(e){ var i = e.target.getAttribute('data-m'); if (i != null) { adm.st.mentors[+i] = e.target.value.trim() || ('멘토 '+(+i+1)); renderAdm(); } });
+$('autoBtn').onclick = function(){
+  // 비어 있는 팀만 채운다: 지망 순서대로 보며, 그 시간에 비어 있고 배정이 가장 적은 멘토를 붙인다.
+  var st = adm.st, per = {}, busy = {}, filled = 0;
+  for (var m = 1; m <= MENTOR_COUNT; m++) per[m] = 0;
+  Object.keys(st.teams).forEach(function(id){ var x = st.teams[id]; if (x.mentor) { per[x.mentor]++; if (x.slot) busy[x.mentor+'@'+x.slot] = 1; } });
+  TEAMS.slice().sort(function(a, b){ return ((st.teams[a.id]||{}).c||[]).length - ((st.teams[b.id]||{}).c||[]).length; }).forEach(function(t){
+    var x = st.teams[t.id]; if (!x || !x.c || !x.c.length || (x.slot && x.mentor)) return;
+    var tries = x.slot ? [x.slot] : x.c;
+    for (var i = 0; i < tries.length; i++) {
+      var s = tries[i], best = 0;
+      for (var mm = 1; mm <= MENTOR_COUNT; mm++) if (per[mm] < PER_MENTOR && !busy[mm+'@'+s] && (!best || per[mm] < per[best])) best = mm;
+      if (best) { x.slot = s; x.mentor = best; per[best]++; busy[best+'@'+s] = 1; filled++; return; }
+    }
+  });
+  renderAdm();
+  msg('admSaveMsg', filled + '팀을 제안했습니다. 확인한 뒤 「저장」을 눌러야 반영됩니다.', 'warn');
+};
+function admSave(extra){
+  var st = adm.st, assign = {};
+  TEAMS.forEach(function(t){ var x = st.teams[t.id] || {}; assign[t.id] = { slot: x.slot || '', mentor: x.mentor || 0 }; });
+  var body = { action:'adminSave', user:adm.user, code:adm.code, assign:assign, mentors:st.mentors };
+  for (var k in extra) body[k] = extra[k];
+  return api(body).then(function(r){
+    if (!r.ok) return msg('admSaveMsg', r.message + (r.problems ? ' — ' + r.problems.join(' / ') : ''), 'bad');
+    adm.st = r.state; adm.closed = r.closed; renderAdm();
+    msg('admSaveMsg', '저장했습니다.', 'ok'); loadState();
+  }).catch(function(e){ msg('admSaveMsg', '연결 오류: '+(e.message||e), 'bad'); });
+}
+$('saveBtn').onclick = function(){ admSave({}); };
+$('lockBtn').onclick = function(){ admSave({ locked: !adm.st.locked }); };
+$('pubBtn').onclick = function(){
+  if (!adm.st.published) {
+    var miss = TEAMS.filter(function(t){ var x = adm.st.teams[t.id]||{}; return !(x.slot && x.mentor); }).length;
+    if (miss && !confirm('아직 ' + miss + '팀이 배정되지 않았습니다. 그래도 공개할까요?')) return;
+  }
+  admSave({ published: !adm.st.published });
+};
+
+renderTeams();
+loadState();
+</script>
+</body>
+</html>
