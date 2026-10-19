@@ -164,7 +164,7 @@ footer a{color:var(--muted)}
 
   <section id="schedSec" class="hide">
     <h2>확정 일정</h2>
-    <p class="sub">온라인 접속 링크는 팀별로 따로 안내합니다.</p>
+    <p class="sub">시간이 되면 자기 칸의 「접속」을 누르십시오. 멘토와 팀이 같은 Google Meet 방으로 들어갑니다.</p>
     <div class="sch" id="sched"></div>
   </section>
 
@@ -187,7 +187,7 @@ footer a{color:var(--muted)}
         <button class="btn ghost" id="pubBtn"></button>
         <button class="btn" id="saveBtn">저장</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th>팀</th><th>지망</th><th>요청</th><th>확정 시간</th><th>멘토</th></tr></thead><tbody id="admRows"></tbody></table></div>
+      <div class="tablewrap"><table><thead><tr><th>팀</th><th>지망</th><th>요청</th><th>확정 시간</th><th>멘토</th><th>Meet 링크</th></tr></thead><tbody id="admRows"></tbody></table></div>
       <div class="msg" id="admSaveMsg"></div>
       <h2 style="margin-top:18px;font-size:15px">시간표 미리보기</h2>
       <div class="sch" id="admSched" style="margin-top:8px"></div>
@@ -290,7 +290,8 @@ function renderSched(el, rows){
     DAYS.forEach(function(d){
       var k = d[0]+'-'+hr;
       h += '<div class="slot">' + (by[k]||[]).map(function(r){ var t = teamOf(r.id);
-        return '<span>'+esc(t ? t.name : r.id)+' · <b>'+esc(r.mentor)+'</b></span>'; }).join('') + '</div>';
+        return '<span>'+esc(t ? t.name : r.id)+' · <b>'+esc(r.mentor)+'</b>'
+          + (r.meet ? ' · <a href="'+esc(r.meet)+'" target="_blank" rel="noopener">접속</a>' : '')+'</span>'; }).join('') + '</div>';
     });
   });
   el.innerHTML = h;
@@ -322,7 +323,9 @@ $('teamSel').onchange = function(){ $('board').classList.add('hide'); me = {id:'
 function showMine(m){
   var box = $('myResult');
   if (m.slot) {
-    box.innerHTML = '<div class="sub" style="margin:0">확정된 멘토링</div><div class="big">'+esc(slotLabel(m.slot))+'</div><div>담당 <b>'+esc(m.mentor)+'</b> · 온라인 접속 링크는 따로 안내합니다.</div>';
+    box.innerHTML = '<div class="sub" style="margin:0">확정된 멘토링</div><div class="big">'+esc(slotLabel(m.slot))+'</div><div>담당 <b>'+esc(m.mentor)+'</b></div>'
+      + (m.meet ? '<div style="margin-top:8px"><a class="btn" href="'+esc(m.meet)+'" target="_blank" rel="noopener">Google Meet 접속</a> <span class="sub">'+esc(m.meet)+'</span></div>'
+                : '<div class="sub">온라인 접속 링크는 곧 이 자리에 표시됩니다.</div>');
     box.classList.remove('hide');
   } else box.classList.add('hide');
 }
@@ -435,16 +438,18 @@ function renderAdm(){
       + '<td>'+(c.length ? c.map(function(s,i){ return (i+1)+'. '+slotLabel(s, true); }).join('<br>') : '<span class="warn">미제출</span>')+'</td>'
       + '<td style="max-width:180px">'+esc(x.memo||'')+'</td>'
       + '<td><select data-t="'+t.id+'" data-f="slot">'+slotOptions(x, x.slot)+'</select>'+(off?'<div class="warn">지망 밖 시간</div>':'')+'</td>'
-      + '<td class="'+(cf.bad[t.id]?'bad':'')+'"><select data-t="'+t.id+'" data-f="mentor">'+mo+'</select>'+(cf.bad[t.id]?'<div class="warn" style="color:var(--bad)">'+cf.bad[t.id]+'</div>':'')+'</td></tr>';
+      + '<td class="'+(cf.bad[t.id]?'bad':'')+'"><select data-t="'+t.id+'" data-f="mentor">'+mo+'</select>'+(cf.bad[t.id]?'<div class="warn" style="color:var(--bad)">'+cf.bad[t.id]+'</div>':'')+'</td>'
+      + '<td><input data-t="'+t.id+'" data-f="meet" value="'+esc(x.meet||'')+'" placeholder="meet.google.com/…" style="min-width:190px"></td></tr>';
   }).join('');
   var rows = [];
-  Object.keys(st.teams).forEach(function(id){ var x = st.teams[id]; if (x.slot) rows.push({id:id, slot:x.slot, mentor: x.mentor ? st.mentors[x.mentor-1] : '멘토 미정'}); });
+  Object.keys(st.teams).forEach(function(id){ var x = st.teams[id]; if (x.slot) rows.push({id:id, slot:x.slot, mentor: x.mentor ? st.mentors[x.mentor-1] : '멘토 미정', meet: x.meet}); });
   renderSched($('admSched'), rows);
 }
 $('admRows').addEventListener('change', function(e){
   var s = e.target, id = s.getAttribute('data-t'); if (!id) return;
   var x = adm.st.teams[id] = adm.st.teams[id] || {};
-  if (s.getAttribute('data-f') === 'slot') x.slot = s.value; else x.mentor = +s.value;
+  var f = s.getAttribute('data-f');
+  if (f === 'slot') x.slot = s.value; else if (f === 'meet') x.meet = s.value.trim(); else x.mentor = +s.value;
   renderAdm();
 });
 $('loads').addEventListener('change', function(e){ var i = e.target.getAttribute('data-m'); if (i != null) { adm.st.mentors[+i] = e.target.value.trim() || ('멘토 '+(+i+1)); renderAdm(); } });
@@ -467,7 +472,7 @@ $('autoBtn').onclick = function(){
 };
 function admSave(extra){
   var st = adm.st, assign = {};
-  TEAMS.forEach(function(t){ var x = st.teams[t.id] || {}; assign[t.id] = { slot: x.slot || '', mentor: x.mentor || 0 }; });
+  TEAMS.forEach(function(t){ var x = st.teams[t.id] || {}; assign[t.id] = { slot: x.slot || '', mentor: x.mentor || 0, meet: x.meet || '' }; });
   var body = { action:'adminSave', user:adm.user, code:adm.code, assign:assign, mentors:st.mentors };
   for (var k in extra) body[k] = extra[k];
   return api(body).then(function(r){
