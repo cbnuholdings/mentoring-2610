@@ -164,7 +164,7 @@ footer a{color:var(--muted)}
 
   <section id="schedSec" class="hide">
     <h2>확정 일정</h2>
-    <p class="sub">시간이 되면 자기 칸의 「접속」을 누르십시오. 멘토와 팀이 같은 Google Meet 방으로 들어갑니다. <b>구글 계정에 로그인한 상태</b>로 접속해 주십시오(로그인하지 않으면 입장이 막힙니다).</p>
+    <p class="sub">시간이 되면 자기 칸의 「접속」을 누르십시오. 멘토와 팀이 같은 Google Meet 방으로 들어갑니다. <b style="color:#d00">각자 개인 구글 계정(Gmail)에 로그인한 상태로 접속해 주십시오. 로그인하지 않으면 입장이 막힙니다.</b></p>
     <div class="sch" id="sched"></div>
   </section>
 
@@ -324,7 +324,7 @@ function showMine(m){
   var box = $('myResult');
   if (m.slot) {
     box.innerHTML = '<div class="sub" style="margin:0">확정된 멘토링</div><div class="big">'+esc(slotLabel(m.slot))+'</div><div>담당 <b>'+esc(m.mentor)+'</b></div>'
-      + (m.meet ? '<div style="margin-top:8px"><a class="btn" href="'+esc(m.meet)+'" target="_blank" rel="noopener">Google Meet 접속</a> <span class="sub">'+esc(m.meet)+'</span></div><div class="sub">구글 계정에 로그인한 상태로 접속해 주십시오.</div>'
+      + (m.meet ? '<div style="margin-top:8px"><a class="btn" href="'+esc(m.meet)+'" target="_blank" rel="noopener">Google Meet 접속</a> <span class="sub">'+esc(m.meet)+'</span></div><div style="margin-top:4px;color:#d00;font-weight:700">각자 개인 구글 계정(Gmail)에 로그인한 상태로 접속해 주십시오. 로그인하지 않으면 입장이 막힙니다.</div>'
                 : '<div class="sub">온라인 접속 링크는 곧 이 자리에 표시됩니다.</div>');
     box.classList.remove('hide');
   } else box.classList.add('hide');
